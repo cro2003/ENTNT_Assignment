@@ -1,0 +1,28 @@
+.homepage {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.homepage h1 {
+    font-size: 36px;
+    color: #00ffff;
+}
+
+.homepage-options {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.homepage-option {
+    background-color: #33ffff;
+    padding: 50px;
+    border-radius: 10px;
+    cursor: pointer;
+    width: 200px;
+    text-align: center;
+}
+
+.homepage-option:hover {
+    background-color: #00ffff;
+}
