@@ -118,31 +118,44 @@ def export_activity_log():
         return response
 
     elif export_format == 'pdf':
-        # Generate PDF
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font('Arial', size=12)
-        pdf.cell(200, 10, txt='Activity Log', ln=True, align='C')
+            # Generate PDF
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font('Arial', size=12)
+            pdf.cell(200, 10, txt='Activity Log', ln=True, align='C')
 
-        # Add table headers
-        pdf.set_font('Arial', size=10)
-        pdf.cell(40, 10, 'Date', border=1)
-        pdf.cell(50, 10, 'Company', border=1)
-        pdf.cell(50, 10, 'Method', border=1)
-        pdf.cell(50, 10, 'Notes', border=1)
-        pdf.ln()
+            # Add table headers
+            pdf.set_font('Arial', size=10, style='B')
+            headers = ['Date', 'Company', 'Method', 'Notes']
+            widths = [40, 50, 50, 50]  # Column widths
 
-        # Add table rows
-        for log in logs:
-            pdf.cell(40, 10, log.date.strftime('%Y-%m-%d %H:%M:%S'), border=1)
-            pdf.cell(50, 10, log.company, border=1)
-            pdf.cell(50, 10, log.method, border=1)
-            pdf.cell(50, 10, log.notes, border=1)
+            for i in range(len(headers)):
+                pdf.cell(widths[i], 10, headers[i], border=1, align='C')
             pdf.ln()
 
-        response = Response(pdf.output(dest='S').encode('latin1'), mimetype='application/pdf')
-        response.headers['Content-Disposition'] = 'attachment; filename=activity_log.pdf'
-        return response
+            # Add table rows
+            pdf.set_font('Arial', size=10)
+            for log in logs:
+                # Get the height required for wrapping Notes text
+                note_lines = pdf.multi_cell(widths[3], 10, log.notes, border=0, split_only=True)
+                row_height = max(len(note_lines) * 10, 10)  # Determine row height
+
+                # Draw cells for the row
+                pdf.cell(widths[0], row_height, log.date.strftime('%Y-%m-%d'), border=1)
+                pdf.cell(widths[1], row_height, log.company, border=1)
+                pdf.cell(widths[2], row_height, log.method, border=1)
+
+                # Draw the Notes column with wrapped text
+                x, y = pdf.get_x(), pdf.get_y()  # Current position
+                pdf.multi_cell(widths[3], 10, log.notes, border=1)
+                pdf.set_xy(x + widths[3], y)  # Move to the next row
+
+                pdf.ln(row_height)
+
+            # Return PDF as response
+            response = Response(pdf.output(dest='S').encode('latin1'), mimetype='application/pdf')
+            response.headers['Content-Disposition'] = 'attachment; filename=activity_log.pdf'
+            return response
 
     return jsonify({"error": "Invalid format specified"}), 400
 
